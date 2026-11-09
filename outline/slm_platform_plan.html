@@ -1,0 +1,775 @@
+<meta charset="utf-8">
+<title>SLM Platform Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a technical review read top to bottom; sticky contents rail on wide screens, one column on phones.
+   Subject detail: the planning assumptions are shown as a package manifest, the roadmap as a week-by-week chart. */
+:root {
+  --bg: #F4F6F9;
+  --surface: #FFFFFF;
+  --fg: #16202C;
+  --muted: #566273;
+  --line: #DAE0E8;
+  --accent: #2B59C3;
+  --accent-soft: #E5ECFA;
+  --amber: #9A5B06;
+  --amber-soft: #FBEFD9;
+  --red: #B3261E;
+  --red-soft: #FAE6E4;
+  --green: #2B7449;
+  --green-soft: #E1F2E7;
+  --code-bg: #ECF0F5;
+  --hatch: rgba(43, 89, 195, 0.18);
+
+  --font-display: "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.1875rem;
+  --step-2: 1.5rem;
+  --step-3: 2rem;
+  --step-4: clamp(2.25rem, 1.6rem + 2.6vw, 3.25rem);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E141C;
+    --surface: #151D28;
+    --fg: #E3E8EF;
+    --muted: #97A3B3;
+    --line: #283342;
+    --accent: #84A6F3;
+    --accent-soft: #1B2944;
+    --amber: #E8B35E;
+    --amber-soft: #32260F;
+    --red: #F08B83;
+    --red-soft: #3A1D1B;
+    --green: #7FCB9C;
+    --green-soft: #15301F;
+    --code-bg: #111923;
+    --hatch: rgba(132, 166, 243, 0.22);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E141C;
+  --surface: #151D28;
+  --fg: #E3E8EF;
+  --muted: #97A3B3;
+  --line: #283342;
+  --accent: #84A6F3;
+  --accent-soft: #1B2944;
+  --amber: #E8B35E;
+  --amber-soft: #32260F;
+  --red: #F08B83;
+  --red-soft: #3A1D1B;
+  --green: #7FCB9C;
+  --green-soft: #15301F;
+  --code-bg: #111923;
+  --hatch: rgba(132, 166, 243, 0.22);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+table { font-size: inherit; color: inherit; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
+code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; }
+
+.shell {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding-block: 48px 96px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 56px;
+}
+main { min-width: 0; max-width: 780px; display: flex; flex-direction: column; gap: 72px; }
+
+/* Contents rail */
+nav.toc {
+  position: sticky;
+  top: calc(env(safe-area-inset-top, 0px) + 32px);
+  align-self: start;
+  font-size: var(--step--1);
+}
+.toc-label {
+  text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;
+  color: var(--muted); font-size: 0.75rem; margin: 0 0 12px;
+}
+.toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.toc ol ol { padding-left: 12px; margin-top: 4px; border-left: 1px solid var(--line); }
+.toc a { color: var(--muted); text-decoration: none; display: block; padding: 2px 0; }
+.toc a:hover { color: var(--fg); }
+.toc .part > a { color: var(--fg); font-weight: 600; }
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 32px; padding-block: 32px 72px; }
+  nav.toc { position: static; border-bottom: 1px solid var(--line); padding-bottom: 20px; }
+  .toc > ol { flex-direction: row; flex-wrap: wrap; gap: 8px 20px; }
+  .toc ol ol { display: none; }
+}
+
+/* Type */
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: var(--step-4); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: var(--step-3); font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: var(--step-1); font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow {
+  text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.75rem;
+  font-weight: 600; color: var(--accent); margin: 0;
+}
+.lead { font-size: var(--step-1); color: var(--muted); line-height: 1.5; }
+.muted { color: var(--muted); }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.stack-lg { display: flex; flex-direction: column; gap: 32px; }
+section { scroll-margin-top: 24px; }
+ul.plain, ol.plain { margin: 0; padding-left: 1.25em; display: flex; flex-direction: column; gap: 8px; max-width: 68ch; }
+ul.plain li::marker { color: var(--muted); }
+
+/* Header */
+header.intro { display: flex; flex-direction: column; gap: 20px; }
+.meta-row { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: var(--step--1); color: var(--muted); }
+
+/* Manifest block (planning assumptions) */
+.manifest {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.manifest-head {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 16px; border-bottom: 1px solid var(--line);
+  font-family: var(--font-mono); font-size: 0.8125rem; color: var(--muted);
+}
+.manifest pre {
+  margin: 0; padding: 16px; overflow-x: auto;
+  font-family: var(--font-mono); font-size: 0.875rem; line-height: 1.7;
+}
+.y-key { color: var(--accent); }
+.y-cmt { color: var(--muted); }
+
+/* Verdict */
+.verdict {
+  border-left: 3px solid var(--accent);
+  padding: 4px 0 4px 20px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+/* Part headers */
+.part-head { display: flex; flex-direction: column; gap: 8px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+
+/* Strengths */
+.strengths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.strength { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+.strength b { font-weight: 600; }
+.strength span { color: var(--muted); font-size: 0.9375rem; }
+.ref { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+@media (max-width: 640px) { .strengths { grid-template-columns: minmax(0, 1fr); } }
+
+/* Pills */
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.03em;
+  padding: 2px 10px; border-radius: 999px; white-space: nowrap;
+}
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.high { color: var(--red); background: var(--red-soft); }
+.pill.med { color: var(--amber); background: var(--amber-soft); }
+.pill.low { color: var(--green); background: var(--green-soft); }
+.pill.block { color: var(--accent); background: var(--accent-soft); }
+.pill.block::before { border-radius: 1px; }
+
+/* Issues */
+.issue { display: flex; flex-direction: column; gap: 14px; padding-top: 24px; border-top: 1px solid var(--line); }
+.issue-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.rec {
+  background: var(--accent-soft); border-radius: 8px; padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.rec-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin: 0; }
+.rec ul { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table.data { width: 100%; border-collapse: collapse; font-size: 0.9375rem; line-height: 1.5; }
+.data th, .data td { text-align: left; vertical-align: top; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.data tr:last-child td { border-bottom: 0; }
+.data th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; background: var(--code-bg); }
+.data td:first-child { font-weight: 600; }
+.data .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.data.wide { min-width: 640px; }
+
+/* Questions */
+.q-group { display: flex; flex-direction: column; gap: 8px; }
+.q-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.q-list li {
+  display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); gap: 4px 8px;
+  padding: 12px 0; border-bottom: 1px solid var(--line);
+}
+.q-list li:last-child { border-bottom: 0; }
+.q-num { font-family: var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; padding-top: 1px; }
+.q-body { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.q-body p { max-width: 64ch; }
+.q-body .muted { font-size: 0.9375rem; }
+
+/* Timeline */
+.gantt-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 16px 16px 12px; }
+.gantt { min-width: 620px; display: grid; grid-template-columns: 130px repeat(24, minmax(0, 1fr)); row-gap: 8px; font-size: 0.8125rem; }
+.g-axis { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted); font-variant-numeric: tabular-nums; border-left: 1px solid var(--line); padding-left: 3px; }
+.g-label { grid-column: 1; align-self: center; font-weight: 500; padding-right: 8px; }
+.g-bar {
+  height: 22px; border-radius: 4px; background: var(--accent);
+  color: var(--surface); font-size: 0.6875rem; font-weight: 600;
+  display: flex; align-items: center; padding: 0 8px; white-space: nowrap; overflow: hidden;
+}
+.g-bar.soft { background: var(--accent-soft); color: var(--accent); }
+.g-bar.gated {
+  background: repeating-linear-gradient(135deg, var(--hatch) 0 6px, transparent 6px 12px);
+  border: 1px dashed var(--accent); color: var(--accent);
+}
+.g-bar.track { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+.g-legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 14px; font-size: 0.8125rem; color: var(--muted); }
+.g-legend span { display: inline-flex; align-items: center; gap: 8px; }
+.g-legend i { width: 18px; height: 10px; border-radius: 2px; display: inline-block; }
+.g-milestone { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--accent); align-self: center; padding-left: 4px; border-left: 2px solid var(--accent); white-space: nowrap; }
+
+/* Phases */
+.phase { display: flex; flex-direction: column; gap: 14px; padding-top: 24px; border-top: 1px solid var(--line); }
+.phase-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.weeks { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.phase ol.steps { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 8px; max-width: 68ch; }
+.phase ol.steps li::marker { font-family: var(--font-mono); color: var(--muted); font-size: 0.875em; }
+.sub-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0; }
+.exit {
+  border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; background: var(--surface);
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; align-items: baseline;
+}
+.exit dt { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--green); }
+.exit dt.demo { color: var(--accent); }
+.exit dd { margin: 0; }
+
+pre.tree {
+  margin: 0; padding: 16px; overflow-x: auto; background: var(--code-bg); border-radius: 8px;
+  font-family: var(--font-mono); font-size: 0.8125rem; line-height: 1.6;
+}
+pre.tree .y-cmt { color: var(--muted); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 4px 10px; font-size: 0.875rem; }
+
+footer { font-size: var(--step--1); color: var(--muted); border-top: 1px solid var(--line); padding-top: 20px; }
+</style>
+
+<div class="shell">
+  <nav class="toc" aria-label="Contents">
+    <p class="toc-label">Contents</p>
+    <ol>
+      <li class="part"><a href="#overview">Overview</a></li>
+      <li class="part"><a href="#assessment">Assessment</a>
+        <ol>
+          <li><a href="#strengths">Strengths</a></li>
+          <li><a href="#issues">Issues</a></li>
+          <li><a href="#gaps">Gaps</a></li>
+        </ol>
+      </li>
+      <li class="part"><a href="#questions">Open questions</a></li>
+      <li class="part"><a href="#plan">Implementation plan</a>
+        <ol>
+          <li><a href="#timeline">Timeline</a></li>
+          <li><a href="#phase-0">Phase 0</a></li>
+          <li><a href="#phase-1">Phase 1</a></li>
+          <li><a href="#phase-2">Phase 2</a></li>
+          <li><a href="#phase-3">Phase 3</a></li>
+          <li><a href="#phase-4">Phase 4</a></li>
+          <li><a href="#phase-5">Phase 5+</a></li>
+          <li><a href="#factory">Factory track</a></li>
+          <li><a href="#metrics">Success metrics</a></li>
+          <li><a href="#risks">Risks</a></li>
+          <li><a href="#deferred">Deferred</a></li>
+        </ol>
+      </li>
+    </ol>
+  </nav>
+
+  <main>
+    <!-- Overview -->
+    <section id="overview">
+      <header class="intro">
+        <p class="eyebrow">Review of technical specification v0.1</p>
+        <h1>SLM Platform Plan</h1>
+        <p class="lead">An assessment of the Hybrid Small Language Model Factory specification, the questions it leaves open, and a phased plan to build it with a very small team.</p>
+        <div class="meta-row">
+          <span>Specification dated 7 November 2026</span>
+          <span>Source: <code>outline/slm_platform_technical_specification.md</code></span>
+        </div>
+
+        <div class="manifest" aria-label="Planning assumptions">
+          <div class="manifest-head"><span>planning-assumptions.yaml</span><span>confirmed with the founder</span></div>
+<pre><span class="y-key">team:</span> solo founder, or 1–2 engineers
+<span class="y-key">firstProduct:</span> model-deployment-kit
+<span class="y-key">designPartner:</span> none yet
+<span class="y-key">factoryToday:</span>
+  <span class="y-key">tooling:</span> Python scripts and notebooks
+  <span class="y-key">compute:</span> RunPod
+  <span class="y-key">publishing:</span> pushed to Hugging Face by hand  <span class="y-cmt"># no provenance captured</span></pre>
+        </div>
+
+        <div class="verdict">
+          <h3>Verdict</h3>
+          <p>The specification is technically sound and unusually disciplined for a first draft. It picks the right first milestone, a stable contract between creating a model and deploying it, and it treats evaluation as a condition of release.</p>
+          <p>Its main weakness is proportion, not technology. It describes a company with three products and a shared multi-customer platform. With one or two engineers and no design partner, about 80% of it should wait. The part built first should be chosen to learn from customers, not for architectural completeness.</p>
+        </div>
+      </header>
+    </section>
+
+    <!-- Part A -->
+    <section id="assessment" class="stack-lg">
+      <div class="part-head">
+        <p class="eyebrow">Part A</p>
+        <h2>Assessment</h2>
+      </div>
+
+      <section id="strengths" class="stack">
+        <h3>Strengths to keep</h3>
+        <div class="strengths">
+          <div class="strength"><b>Contract-first architecture</b><span>The manifest as the hand-off between registry, generator and deployment is the right spine.</span><span class="ref">§5 · §7.3 · §21</span></div>
+          <div class="strength"><b>Kit independent of the Factory</b><span>The Kit can be sold on its own and can take customer-supplied models.</span><span class="ref">§7.1</span></div>
+          <div class="strength"><b>Evidence-based release</b><span>A finished training run is not a release. Good evidence is a real differentiator.</span><span class="ref">§4.8 · §8.2</span></div>
+          <div class="strength"><b>Compatibility catalogue that fails clearly</b><span>This is where most of the Kit's engineering value lies.</span><span class="ref">§8.3</span></div>
+          <div class="strength"><b>Incremental roadmap</b><span>CLI, then Compose, evaluation, Kubernetes, platform and application. The order is broadly right.</span><span class="ref">§17</span></div>
+          <div class="strength"><b>Sensible security posture</b><span>No inbound access to customer networks, no prompt logging by default, immutable releases, offline install.</span><span class="ref">§11 · §12</span></div>
+        </div>
+      </section>
+
+      <section id="issues" class="stack-lg">
+        <h3>Issues and recommended changes</h3>
+
+        <article class="issue">
+          <div class="issue-head"><h3>Scope is far larger than the team</h3><span class="pill high">High impact</span></div>
+          <p>The specification covers ingestion, dataset generation, training orchestration, a registry, packaging, three runtimes, three deployment profiles, an API gateway, multi-tenancy, monitoring, remote management and an application layer. Each of these is a product in its own right.</p>
+          <div class="rec">
+            <p class="rec-label">Recommendation</p>
+            <p>Build the Deployment Kit as a single Python command-line tool. Run the Factory as a service you perform with your existing scripts, made reproducible but not yet automated. Defer the management platform, API gateway, multi-tenancy, remote management and AI Applications until a paying customer asks for them.</p>
+          </div>
+        </article>
+
+        <article class="issue">
+          <div class="issue-head"><h3>The Kit's commercial value is unproven</h3><span class="pill high">High impact</span></div>
+          <p>Serving an open-weights model is already easy. <code>vllm serve</code>, Ollama, Hugging Face Inference Endpoints, NVIDIA NIM, BentoML, KServe and hosted fine-tune-and-serve providers all cover parts of it. A tool that only generates a Docker Compose file for vLLM will not justify a purchase.</p>
+          <p>The defensible value is what those tools do not offer together:</p>
+          <ul class="plain">
+            <li>A tested list of which model, runtime version and GPU combinations work, with evidence.</li>
+            <li>Signed, checksummed bundles that install on networks with no internet access.</li>
+            <li>Evaluation and performance results shipped with the package.</li>
+            <li>Provenance from source data to deployed model, when combined with the Factory.</li>
+          </ul>
+          <p>These matter most to regulated and security-conscious buyers, who also need the most expensive features: offline bundles, signing and Kubernetes.</p>
+          <div class="rec">
+            <p class="rec-label">Recommendation</p>
+            <ul>
+              <li>Treat the first three months as customer discovery plus MVP. Aim for one design partner before building Kubernetes support.</li>
+              <li>Build offline bundles, signing and the validation report earlier, in Phase 3. Push Helm later.</li>
+              <li>Make the first paid offer a done-for-you fine-tune: "we fine-tune a model on your data and deliver a tested, signed, installable package". This earns from the existing RunPod workflow, and every engagement adds to the compatibility list.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="issue">
+          <div class="issue-head"><h3>Two languages are too costly for a solo build</h3><span class="pill high">High impact</span></div>
+          <p>Section 14 proposes Java and Spring Boot for the platform API, Python for machine learning and JobRunr for jobs. Two stacks double the build pipelines, dependency management, deployment and context switching. Everything the MVP needs, including the Hugging Face client, safetensors inspection, vLLM and evaluation tools, is Python.</p>
+          <div class="rec">
+            <p class="rec-label">Recommendation</p>
+            <p>Use Python only until there is a team and a reason. Build the Kit as an importable library with a thin command-line layer. When the management platform arrives in Phase 5, expose the same library through FastAPI. The Java client in §7.2 can stay as generated documentation, since the API is OpenAI-compatible.</p>
+          </div>
+        </article>
+
+        <article class="issue">
+          <div class="issue-head"><h3>Don't build a registry, gateway or workflow engine yet</h3><span class="pill med">Medium impact</span></div>
+          <p>Section 19 asks whether to build or adopt each of these. For the MVP, none of them needs to exist as a service.</p>
+          <div class="table-wrap">
+            <table class="data wide">
+              <thead><tr><th>Component</th><th>For the MVP</th><th>Revisit when</th></tr></thead>
+              <tbody>
+                <tr><td>Model registry</td><td>Manifest and provenance files stored next to the weights in a private Hugging Face repo or S3 bucket, plus a local index file</td><td>More than about 20 models or several users. Then consider MLflow Model Registry or a Postgres-backed service</td></tr>
+                <tr><td>Artefact storage</td><td>Hugging Face private repos, as today, plus S3-compatible storage for offline bundles</td><td>A customer forbids Hugging Face</td></tr>
+                <tr><td>API gateway</td><td>A reverse proxy in the Compose package (Caddy or Traefik) for TLS and API keys; vLLM's <code>--api-key</code> as a minimum</td><td>Managed hosting with usage metering. Then adopt an established gateway such as an Envoy-based one, Kong or the LiteLLM proxy</td></tr>
+                <tr><td>Job orchestration</td><td>None. The tool runs steps in order and saves state to disk, so a failed step can be re-run</td><td>Factory automation in Phase 5. Then choose a Postgres-backed queue or a durable workflow engine such as Temporal or Prefect</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="issue">
+          <div class="issue-head"><h3>Check existing packaging standards first</h3><span class="pill med">Medium impact</span></div>
+          <p>The manifest in §7.3 is a reasonable start. Before freezing it, evaluate these:</p>
+          <ul class="plain">
+            <li><b>OCI artifacts for model weights</b>, pushed with ORAS or in the KitOps ModelKit format. Weights then live in any container registry, copy into isolated registries with standard tools, and are signed the same way as images. This could settle the storage, offline-install and signing decisions together.</li>
+            <li><b>Sigstore cosign</b> for signing, <b>syft</b> for software bills of materials, <b>trivy</b> or <b>grype</b> for scanning, and SLSA-style provenance attestations.</li>
+            <li><b>Model cards</b> or a CycloneDX ML-BOM for the provenance record.</li>
+          </ul>
+          <div class="rec">
+            <p class="rec-label">Recommendation</p>
+            <p>Keep your own manifest as the deployment contract, and have it point to these standard artefacts rather than copy them.</p>
+          </div>
+        </article>
+
+        <article class="issue">
+          <div class="issue-head"><h3>Avoid custom runtime images in the MVP</h3><span class="pill med">Medium impact</span></div>
+          <p>Section 7.4 builds a custom Dockerfile on top of <code>vllm/vllm-openai</code>. The upstream image already contains the server.</p>
+          <div class="rec">
+            <p class="rec-label">Recommendation</p>
+            <p>Reference the upstream image by digest and pass configuration as arguments. This removes an image build, a registry and a patching obligation from the MVP. Fetching and verifying the weights can run in a separate init container.</p>
+          </div>
+        </article>
+      </section>
+
+      <section id="gaps" class="stack">
+        <h3>Gaps the specification doesn't cover</h3>
+        <div class="table-wrap">
+          <table class="data wide">
+            <thead><tr><th>Gap</th><th>Why it matters</th></tr></thead>
+            <tbody>
+              <tr><td>Base-model licences when redistributing</td><td>Merged models inherit the base licence. Some carry attribution, naming and usage conditions (for example the Llama community licence). Gemma has its own terms. Many Qwen models are Apache 2.0, but not all. The compatibility list needs a licence field that can block packaging.</td></tr>
+              <tr><td>Terms of the model that generates synthetic data</td><td>Several commercial model providers restrict using their outputs to train competing models. Check before building dataset generation on one (§4.3).</td></tr>
+              <tr><td>Ownership of fine-tuned weights</td><td>Who owns the adapter, and can lessons be reused across customers? This belongs in the contract before the first Factory engagement.</td></tr>
+              <tr><td>Structured output</td><td>The banking example returns JSON. vLLM can force output to match a JSON schema, which makes valid output close to certain. It should be a manifest option and something the evaluation measures.</td></tr>
+              <tr><td>Serving many adapters on one model</td><td>vLLM can serve many customers' LoRA adapters on one base model. For managed hosting this is the main cost lever and the practical answer to the multi-tenancy question in §19. Merge by default for customer-installed packages.</td></tr>
+              <tr><td>Cost of GPUs for testing</td><td>Validation needs real GPUs. Budget for on-demand GPUs per run and keep the supported list small.</td></tr>
+              <tr><td>Patches and support</td><td>Shipped packages pin vLLM versions that will get security fixes. Decide support windows and how customers receive updated bundles.</td></tr>
+              <tr><td>Regulation</td><td>If customers use models for decisions such as creditworthiness, EU AI Act high-risk obligations may apply to them, and indirectly to you as a supplier. Get advice before selling into banking.</td></tr>
+              <tr><td>Commercial model</td><td>Pricing per package, per model, by subscription or per token changes what must be metered and built.</td></tr>
+              <tr><td>Estimating hardware</td><td>This can be computed: weight size, plus KV cache (2 × layers × KV heads × head size × bytes × context × concurrent requests), plus runtime overhead. Then confirm it with a measured benchmark.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="margin-top: 16px;">Smaller points</h3>
+        <ul class="plain">
+          <li>Produce the evaluation report as Markdown or HTML plus JSON instead of PDF (§7.2). A PDF can be rendered later.</li>
+          <li>Choose the real domain for <code>apiVersion: slm.example.com/v1</code> early. It is hard to change once packages ship.</li>
+          <li>MVP criterion 9 needs a definition of "supported GPU host": the GPUs, driver versions and container toolkit versions.</li>
+          <li>The Phase 1 exit criterion should include a published, versioned JSON Schema for the manifest, so the contract can be checked by machine.</li>
+          <li>The specification has no business success measures, such as the time to package a new model or the number of tested combinations. Add them so progress is measurable.</li>
+        </ul>
+      </section>
+    </section>
+
+    <!-- Part B -->
+    <section id="questions" class="stack-lg">
+      <div class="part-head">
+        <p class="eyebrow">Part B</p>
+        <h2>Open questions</h2>
+        <p class="muted">Numbered so the plan can refer to them. A blue tag marks a question that must be answered before that phase starts.</p>
+      </div>
+
+      <div class="q-group">
+        <h3>Business and commercial</h3>
+        <ol class="q-list">
+          <li><span class="q-num">1</span><div class="q-body"><span class="pill block">Blocks Phase 0</span><p>Which buyer segment comes first: regulated enterprises running on their own hardware, mid-market firms happy with managed hosting, or software vendors embedding models? This decides whether offline and Kubernetes support or managed hosting comes first.</p></div></li>
+          <li><span class="q-num">2</span><div class="q-body"><p>What is the pricing model: a licence per package, a subscription with updates, a fee per fine-tuning engagement, or managed hosting priced per token or per instance?</p></div></li>
+          <li><span class="q-num">3</span><div class="q-body"><p>Is the Kit open source, with paid tested packages and support, or proprietary?</p><p class="muted">An open-source tool is a credible way to reach users in this market, but it changes what you can charge for.</p></div></li>
+          <li><span class="q-num">4</span><div class="q-body"><p>What is the budget for GPU time for development, testing and demos?</p></div></li>
+          <li><span class="q-num">5</span><div class="q-body"><p>When do you want the first revenue?</p></div></li>
+        </ol>
+      </div>
+
+      <div class="q-group">
+        <h3>Legal and data</h3>
+        <ol class="q-list">
+          <li><span class="q-num">6</span><div class="q-body"><span class="pill block">Blocks first Factory engagement</span><p>Who owns fine-tuned weights, datasets and synthetic data? What reuse rights do you keep?</p></div></li>
+          <li><span class="q-num">7</span><div class="q-body"><p>Which model or models will generate synthetic data, and do their terms allow it?</p></div></li>
+          <li><span class="q-num">8</span><div class="q-body"><p>Where may customer data be processed? Does RunPod meet your target customers' security and data-residency requirements?</p></div></li>
+          <li><span class="q-num">9</span><div class="q-body"><p>Will you pursue SOC 2 or ISO 27001, and when?</p></div></li>
+        </ol>
+      </div>
+
+      <div class="q-group">
+        <h3>Technical</h3>
+        <ol class="q-list">
+          <li><span class="q-num">10</span><div class="q-body"><span class="pill block">Blocks Phase 2</span><p>Which 2–3 model families and sizes, and which GPUs, will the first version support? For example, one 24 GB class (L4, A10G) and one 80 GB class (A100, H100).</p></div></li>
+          <li><span class="q-num">11</span><div class="q-body"><span class="pill block">Blocks Phase 1</span><p>Will model weights be stored as OCI artifacts (ORAS or KitOps), or stay on Hugging Face and S3?</p><p class="muted">Recommended: a one-week test in Phase 1.</p></div></li>
+          <li><span class="q-num">12</span><div class="q-body"><p>Does the MVP need the Ollama and llama.cpp (GGUF) profile, or only vLLM?</p><p class="muted">Recommended: vLLM only until a customer needs CPU or edge deployment.</p></div></li>
+          <li><span class="q-num">13</span><div class="q-body"><p>Should the first package serve LoRA adapters directly, or merged models only?</p><p class="muted">Recommended: merged models only for customer-installed packages.</p></div></li>
+          <li><span class="q-num">14</span><div class="q-body"><p>What does the current training workflow use (Unsloth, Axolotl, TRL or custom code), and which settings are already recorded?</p></div></li>
+          <li><span class="q-num">15</span><div class="q-body"><p>Which domain and name will the manifest's <code>apiVersion</code> use?</p></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Part C -->
+    <section id="plan" class="stack-lg">
+      <div class="part-head">
+        <p class="eyebrow">Part C</p>
+        <h2>Implementation plan</h2>
+      </div>
+
+      <div class="stack">
+        <h3>Ground rules</h3>
+        <ul class="plain">
+          <li><b>One language, one repository, one command-line tool.</b> Python 3.12 with uv, Typer, Pydantic 2, Jinja2 templates and pytest.</li>
+          <li><b>Library first.</b> All logic lives in <code>slm_kit</code>, so the later web service calls the same code.</li>
+          <li><b>Compatibility as data.</b> The compatibility list and GPU profiles are tested YAML files, not code branches.</li>
+          <li><b>Every phase ends in a demo</b> you can show a prospective customer.</li>
+          <li><b>Customer discovery runs alongside engineering</b> through Phases 0–3.</li>
+        </ul>
+      </div>
+
+      <section id="timeline" class="stack">
+        <h3>Timeline</h3>
+        <p class="muted">Assumes one full-time engineer. With two, Phases 2 and 3 overlap and the plan shortens by about a third.</p>
+        <div class="gantt-wrap" role="img" aria-label="Timeline chart. Phase 0 weeks 0 to 2, Phase 1 weeks 2 to 5, Phase 2 weeks 5 to 10, Phase 3 weeks 10 to 14, customer discovery weeks 0 to 14, Factory service track weeks 2 to 14, Phase 4 weeks 14 to 20 only with a partner, Phase 5 and beyond from week 20.">
+          <div class="gantt">
+            <div></div>
+            <div class="g-axis" style="grid-column: 2 / span 2;">0</div>
+            <div class="g-axis" style="grid-column: 4 / span 2;">2</div>
+            <div class="g-axis" style="grid-column: 6 / span 2;">4</div>
+            <div class="g-axis" style="grid-column: 8 / span 2;">6</div>
+            <div class="g-axis" style="grid-column: 10 / span 2;">8</div>
+            <div class="g-axis" style="grid-column: 12 / span 2;">10</div>
+            <div class="g-axis" style="grid-column: 14 / span 2;">12</div>
+            <div class="g-axis" style="grid-column: 16 / span 2;">14</div>
+            <div class="g-axis" style="grid-column: 18 / span 2;">16</div>
+            <div class="g-axis" style="grid-column: 20 / span 2;">18</div>
+            <div class="g-axis" style="grid-column: 22 / span 2;">20</div>
+            <div class="g-axis" style="grid-column: 24 / span 2;">22</div>
+
+            <div class="g-label">Phase 0</div>
+            <div class="g-bar" style="grid-column: 2 / 4;">Setup</div>
+
+            <div class="g-label">Phase 1</div>
+            <div class="g-bar" style="grid-column: 4 / 7;">Manifest</div>
+
+            <div class="g-label">Phase 2</div>
+            <div class="g-bar" style="grid-column: 7 / 12;">Deployment CLI MVP</div>
+
+            <div class="g-label">Phase 3</div>
+            <div class="g-bar" style="grid-column: 12 / 16;">Evidence + offline</div>
+
+            <div class="g-label">Discovery</div>
+            <div class="g-bar soft" style="grid-column: 2 / 16;">Customer interviews, target: 1 design partner</div>
+
+            <div class="g-label">Factory service</div>
+            <div class="g-bar track" style="grid-column: 4 / 16;">Reproducible fine-tuning engagements</div>
+
+            <div class="g-label">Partner target</div>
+            <div class="g-milestone" style="grid-column: 16 / 22;">week 14</div>
+
+            <div class="g-label">Phase 4</div>
+            <div class="g-bar gated" style="grid-column: 16 / 22;">Kubernetes</div>
+
+            <div class="g-label">Phase 5+</div>
+            <div class="g-bar gated" style="grid-column: 22 / 26;">Platform</div>
+          </div>
+          <div class="g-legend">
+            <span><i style="background: var(--accent);"></i>Planned engineering</span>
+            <span><i style="background: var(--accent-soft);"></i>Business work</span>
+            <span><i style="border: 1px solid var(--accent);"></i>Service track</span>
+            <span><i style="background: repeating-linear-gradient(135deg, var(--hatch) 0 3px, transparent 3px 6px); border: 1px dashed var(--accent);"></i>Only if a customer needs it</span>
+          </div>
+        </div>
+      </section>
+
+      <article id="phase-0" class="phase">
+        <div class="phase-head"><h3>Phase 0 · Foundations and discovery</h3><span class="weeks">weeks 0–2</span></div>
+        <p class="sub-label">Engineering</p>
+        <ol class="steps">
+          <li>Create the repository (layout below), automated checks in GitHub Actions (lint, type checks, unit tests), pre-commit hooks, and a licence decision for the code.</li>
+          <li>Start <code>docs/adr/</code> and record the first decisions: Python only, the manifest as the contract, vLLM as the first runtime, no custom runtime image.</li>
+          <li>Set up accounts: a Hugging Face organisation with private repos, an S3-compatible bucket, a RunPod API key in a secrets manager, and a container registry.</li>
+          <li>Choose the first support list (question 10). A good start: two or three current open-weights families with permissive licences at 1–8B parameters, on one 24 GB GPU class and one 80 GB class.</li>
+        </ol>
+        <p class="sub-label">Business</p>
+        <ol class="steps">
+          <li>List 30 target companies in one segment and hold 10–15 discovery conversations. Test the offer: a tested, signed, installable model package, with optional fine-tuning on their data.</li>
+          <li>Get legal advice on redistributing base-model licences, synthetic-data terms and a standard data and IP clause (questions 6–7).</li>
+        </ol>
+        <pre class="tree" aria-label="Proposed repository layout">slm-kit/
+  pyproject.toml
+  src/slm_kit/
+    cli.py          <span class="y-cmt"># inspect | package | validate | install | bundle</span>
+    manifest/       <span class="y-cmt"># Pydantic models, exported to versioned JSON Schema</span>
+    sources/        <span class="y-cmt"># huggingface, local, s3: pin revision, fetch, checksum</span>
+    inspect/        <span class="y-cmt"># architecture, parameters, dtype, tokenizer, chat template, licence</span>
+    compat/         <span class="y-cmt"># compatibility list loader and rules</span>
+    hardware/       <span class="y-cmt"># memory estimator, GPU profiles</span>
+    generate/       <span class="y-cmt"># templates for Compose, docs, OpenAPI</span>
+    validate/       <span class="y-cmt"># smoke tests, benchmarks, task evaluation, report</span>
+    bundle/         <span class="y-cmt"># checksums, signing, SBOM, offline bundle</span>
+  catalogue/        <span class="y-cmt"># runtimes/, architectures/, gpus/, licences/ as YAML</span>
+  templates/
+  schemas/manifest.v1alpha1.json
+  tests/            <span class="y-cmt"># unit tests and golden-file tests of generated output</span>
+  factory/          <span class="y-cmt"># existing training scripts, made reproducible</span>
+  docs/adr/</pre>
+        <dl class="exit">
+          <dt>Exit</dt><dd>Repository and checks running, decisions written down, support list chosen, discovery calls booked.</dd>
+        </dl>
+      </article>
+
+      <article id="phase-1" class="phase">
+        <div class="phase-head"><h3>Phase 1 · Standardise the model output</h3><span class="weeks">weeks 2–5</span></div>
+        <ol class="steps">
+          <li><b>Manifest schema <code>v1alpha1</code></b> as Pydantic models, exported to JSON Schema in <code>schemas/</code>. It holds the fields from §5.1 and §7.3, plus licence, chat template, structured-output settings, provenance (dataset, training run, evaluation) and a list of artefacts with SHA-256 checksums.</li>
+          <li><b>Source resolvers</b> for Hugging Face (turn a branch or tag into a commit hash, fetch with a token from a secret), local directories and S3.</li>
+          <li><b><code>slm-kit inspect</code></b> reads <code>config.json</code>, the safetensors headers (parameter count and dtype without loading weights), the tokenizer and chat template, the licence from the model card, and file checksums. It writes a draft manifest.</li>
+          <li><b>Factory hook.</b> Change the RunPod scripts to write <code>provenance.json</code> (base model and revision, dataset hash, settings, seed, library versions, GPU type, timings) and push it with the model.</li>
+          <li><b>One-week test of OCI artifacts for weights</b> (question 11). Push a model with ORAS or KitOps, pull it on an isolated network, sign it with cosign, and record the decision.</li>
+        </ol>
+        <dl class="exit">
+          <dt>Exit</dt><dd>Every existing model in your Hugging Face organisation produces a valid manifest, and new training runs record provenance automatically.</dd>
+        </dl>
+      </article>
+
+      <article id="phase-2" class="phase">
+        <div class="phase-head"><h3>Phase 2 · Deployment CLI MVP</h3><span class="weeks">weeks 5–10</span></div>
+        <ol class="steps">
+          <li><b>Compatibility list</b> for the chosen vLLM version: supported architectures, dtypes, quantisation, LoRA support, minimum GPU generation and known issues. Each check returns supported, unsupported with a reason, or needs conversion with the steps.</li>
+          <li><b>Hardware estimator</b> covering weights, KV cache and overhead per GPU profile. It recommends context length, GPU memory share and concurrent requests, and labels them as estimates until Phase 3 measures them.</li>
+          <li><b><code>slm-kit package</code></b> generates:
+            <ul class="plain" style="margin-top: 6px;">
+              <li><code>manifest.yaml</code> and <code>runtime-config.yaml</code></li>
+              <li><code>docker-compose.yaml</code> with the upstream vLLM image by digest, an init container that fetches weights and checks their checksums, a reverse proxy with TLS and API keys, health checks on vLLM's <code>/health</code>, a restart policy, a read-only model volume, GPU reservations and log settings. The model port is never exposed outside the internal network.</li>
+              <li><code>.env.example</code>, an OpenAPI description of the supported part of the OpenAI chat API, and curl, Python and Java examples.</li>
+              <li>Installation, configuration, operations and troubleshooting guides.</li>
+              <li><code>checksums.sha256</code></li>
+            </ul>
+          </li>
+          <li><b><code>slm-kit install --target docker</code></b> checks the NVIDIA driver, container toolkit, GPU memory and disk space, then starts the stack.</li>
+          <li><b><code>slm-kit validate</code></b> starts the package on a RunPod GPU or locally, waits until it is ready, and runs smoke tests: a chat completion, streaming, schema-forced JSON if configured, and a request without a key that must be rejected. Then it shuts everything down and explains any failure.</li>
+          <li><b>Golden-file tests</b> for generated output, and a nightly GPU job that packages and validates every combination on the list.</li>
+        </ol>
+        <dl class="exit">
+          <dt>Exit</dt><dd>A supported model is packaged and runs on a supported GPU host with no manual edits, and all 15 MVP criteria in §18 pass.</dd>
+          <dt class="demo">Demo</dt><dd>From a Hugging Face repo to a tested package serving an authenticated API in under 15 minutes.</dd>
+        </dl>
+      </article>
+
+      <article id="phase-3" class="phase">
+        <div class="phase-head"><h3>Phase 3 · Evidence, integrity and offline install</h3><span class="weeks">weeks 10–14</span></div>
+        <p class="muted">Brings the supply-chain items from §7.7 forward, because they set the Kit apart.</p>
+        <ol class="steps">
+          <li><b>Performance benchmark</b>: latency percentiles, throughput and tokens per second at several concurrency levels, and peak GPU memory. Saved in <code>benchmark.json</code> and used to correct the estimator.</li>
+          <li><b>Task evaluation</b> on a customer or Factory evaluation set: exact match, JSON validity, per-field accuracy and F1, compared with the base model. Thresholds live in the manifest, and packaging fails if they are missed.</li>
+          <li><b>Evaluation report</b> in Markdown or HTML plus JSON, covering intended use, limitations, method, results, baseline and approval status.</li>
+          <li><b>Supply chain</b>: a software bill of materials (syft), an image scan (trivy or grype), cosign signatures for the bundle and image digests, and <code>slm-kit verify</code>.</li>
+          <li><b><code>slm-kit bundle --offline</code></b> produces one archive with saved images, weights, signatures and an installer, tested on a host with no outbound network.</li>
+        </ol>
+        <dl class="exit">
+          <dt>Exit</dt><dd>Every package ships with reproducible evidence and can be installed and verified offline.</dd>
+          <dt class="demo">Demo</dt><dd>The version to show design partners.</dd>
+        </dl>
+      </article>
+
+      <article id="phase-4" class="phase">
+        <div class="phase-head"><h3>Phase 4 · Kubernetes</h3><span class="weeks">weeks 14–20, only with a partner</span></div>
+        <p>Start only when a design partner needs it. Otherwise, extend the compatibility list, add the GGUF and Ollama profile, or invest in the Factory.</p>
+        <ol class="steps">
+          <li>A Helm chart with a values schema, GPU requests, node selectors and tolerations, probes, network policies, pod security settings, secret references, and weight loading from a volume or object storage.</li>
+          <li>Testing on k3s or kind with a GPU node, then on the partner's platform (EKS, AKS, GKE or OpenShift).</li>
+          <li>Rollback by Helm revision and a documented upgrade procedure.</li>
+        </ol>
+        <dl class="exit">
+          <dt>Exit</dt><dd>The partner installs a tested package into their own cluster.</dd>
+        </dl>
+      </article>
+
+      <article id="phase-5" class="phase">
+        <div class="phase-head"><h3>Phase 5 and beyond · Platform, automation, applications</h3><span class="weeks">once the Kit has paying users</span></div>
+        <ul class="plain">
+          <li><b>Management service</b>: FastAPI around <code>slm_kit</code>, Postgres for customers, projects, models, packages and deployments, object storage, and the workflow engine chosen at that point.</li>
+          <li><b>Factory automation</b>: ingestion, dataset generation, quality checks, training on RunPod, an evaluation gate, registration and packaging, each a retryable step with human approval where needed (§15).</li>
+          <li><b>Managed hosting</b>: many adapters per base model on vLLM, behind a gateway with usage metering.</li>
+          <li><b>Web interface</b>, then the <b>first AI application</b>, chosen from problems seen in Factory engagements.</li>
+        </ul>
+      </article>
+
+      <section id="factory" class="phase">
+        <div class="phase-head"><h3>Factory track</h3><span class="weeks">alongside Phases 1–3</span></div>
+        <p>Keep the Factory as a service. Make it reproducible, not automated.</p>
+        <ol class="steps">
+          <li>Move scripts and notebooks into <code>factory/</code> as scripts driven by config files, with no hidden notebook state. Pin library versions and set seeds.</li>
+          <li>Add dataset hashing, train, validation and test splits with leakage checks, and a record of where each synthetic example came from (§4.3).</li>
+          <li>Have every run write <code>provenance.json</code> and push to a private Hugging Face repo with a manifest, so its output goes straight into <code>slm-kit package</code>.</li>
+          <li>Hold back an evaluation set for each engagement. It becomes the input to Phase 3's task evaluation.</li>
+        </ol>
+      </section>
+
+      <section id="metrics" class="stack">
+        <h3>Success metrics</h3>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Measure</th><th>Target by end of Phase 3</th></tr></thead>
+            <tbody>
+              <tr><td>Hugging Face repo to tested running package</td><td class="num">&lt; 15 min, excluding download</td></tr>
+              <tr><td>Tested model × runtime × GPU combinations</td><td class="num">≥ 6</td></tr>
+              <tr><td>Packages needing manual edits</td><td class="num">0</td></tr>
+              <tr><td>GPU memory estimate error against measured</td><td class="num">&lt; 15%</td></tr>
+              <tr><td>Design partners signed</td><td class="num">≥ 1</td></tr>
+              <tr><td>Discovery conversations held</td><td class="num">≥ 15</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="risks" class="stack">
+        <h3>Risk register</h3>
+        <div class="table-wrap">
+          <table class="data wide">
+            <thead><tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Mitigation</th></tr></thead>
+            <tbody>
+              <tr><td>The Kit is seen as a wrapper around vLLM</td><td><span class="pill high">High</span></td><td><span class="pill high">High</span></td><td>Lead with evidence, signed offline bundles and done-for-you fine-tuning. Test the offer in discovery before Phase 4.</td></tr>
+              <tr><td>vLLM releases break compatibility</td><td><span class="pill high">High</span></td><td><span class="pill med">Medium</span></td><td>Pin images by digest, test the full list nightly, keep a compatibility list per runtime version.</td></tr>
+              <tr><td>GPU spending exceeds budget</td><td><span class="pill med">Medium</span></td><td><span class="pill med">Medium</span></td><td>Keep the support list small, use on-demand GPUs only while validating, cache weights.</td></tr>
+              <tr><td>Licence breach when redistributing merged models</td><td><span class="pill med">Medium</span></td><td><span class="pill high">High</span></td><td>A licence field in the compatibility list blocks packaging. Legal review in Phase 0.</td></tr>
+              <tr><td>Founder time split between sales and engineering</td><td><span class="pill high">High</span></td><td><span class="pill high">High</span></td><td>Keep to the deferred list strictly. Time-box discovery, for example two days a week.</td></tr>
+              <tr><td>A regulated buyer requires certifications you don't have</td><td><span class="pill med">Medium</span></td><td><span class="pill high">High</span></td><td>Target a less-regulated first partner, or plan SOC 2 readiness from Phase 3.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="deferred" class="stack">
+        <h3>Deliberately deferred</h3>
+        <p class="muted">From the specification. Each comes back into scope when a paying customer needs it.</p>
+        <div class="chips">
+          <span class="chip">Web interface</span>
+          <span class="chip">Spring Boot API</span>
+          <span class="chip">Postgres registry service</span>
+          <span class="chip">API gateway product</span>
+          <span class="chip">Multi-tenancy</span>
+          <span class="chip">Remote management agent</span>
+          <span class="chip">Autoscaling</span>
+          <span class="chip">Multi-cloud provisioning</span>
+          <span class="chip">Ollama and llama.cpp profile</span>
+          <span class="chip">Automated ingestion and dataset generation</span>
+          <span class="chip">AI Applications stream</span>
+        </div>
+      </section>
+    </section>
+
+    <footer>
+      Based on <code>outline/slm_platform_assessment_and_implementation_plan.md</code>. Section references (§) point to the technical specification v0.1.
+    </footer>
+  </main>
+</div>
